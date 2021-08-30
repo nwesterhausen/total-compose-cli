@@ -1,5 +1,7 @@
 # total-compose-cli
 
+![v0.1.0](https://img.shields.io/badge/version-0.1.0-orange)
+
 total-compose is a docker-compose helper which lets you specify docker-compose.yml files using
 keywords (names) and do so from the comfort of $HOME regardless of where the compose file
 is at. 
@@ -39,5 +41,5 @@ Run the `install.sh` script. Here's what it does:
 
 ## Usage
 
-total-compose prefers to use either config.yaml or config.yml in `~/.total-compose`, 
-but you may specify a specific configuration file using `-c, --config=` instead.
+total-compose prefers to use config.yaml in `~/.total-compose`, but you may specify 
+a specific configuration file using `-c, --config=` instead.
