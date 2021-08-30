@@ -1,0 +1,5 @@
+# Ignore your personal configuration file 
+*.yml
+*.yaml
+
+
