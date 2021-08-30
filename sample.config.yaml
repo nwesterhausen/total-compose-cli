@@ -1,25 +1,25 @@
-## Example configuration file for total-compose
-## 
-## The services header contains the information for where to find and
-## what to refer to your docker-compose files as. 
+### Example configuration file for total-compose
+### 
+### The services header contains the information for where to find and
+### what to refer to your docker-compose files as. 
 services:
-  ## Each service is listed as an object in a list. Each object has
-  ## properties for a name, location, and optionally a description.
-  ## 
-  ## The name key is a name to refer to the service stack as, and
-  ## should be a single word but probably can be as long as you want.
-  ## However, the matching in total-compose-cli is simplistic and
-  ## having names which include other valid names might cause issues.
-  ## For best results, names should not include spaces and should each
-  ## be unique.
+### Each service is listed as an object in a list. Each object has
+### properties for a name, location, and optionally a description.
+### 
+### The name key is a name to refer to the service stack as, and
+### should be a single word but probably can be as long as you want.
+### However, the matching in total-compose-cli is simplistic and
+### having names which include other valid names might cause issues.
+### For best results, names should not include spaces and should each
+### be unique.
   - name: personal-site1
-    ## The location key should be the path to where the docker-compose
-    ## file is at, and needs to end with .yml or .yaml to be considered
-    ## valid. Relative paths will be expanded as if we started in $HOME.
-    ## Using an absolute path is recommended instead of relying on 
-    ## total-compose to expand and find the correct path.
+### The location key should be the path to where the docker-compose
+### file is at, and needs to end with .yml or .yaml to be considered
+### valid. Relative paths will be expanded as if we started in $HOME.
+### Using an absolute path is recommended instead of relying on 
+### total-compose to expand and find the correct path.
     location: ~/personal-website/docker-compose.yml
-    ## The description key is not required but if supplied, total-compose
-    ## will list the description alongside the name when performing
-    ## commands. 
+### The description key is not required but if supplied, total-compose
+### will list the description alongside the name when performing
+### commands. 
     description: nginx serving example.com
