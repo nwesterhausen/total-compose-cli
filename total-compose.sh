@@ -151,7 +151,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    --no-color)
+    --no-color|--no-colors)
       nocolor=1
       shift
       ;;
