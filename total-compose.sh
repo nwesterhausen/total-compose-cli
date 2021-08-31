@@ -3,13 +3,20 @@
 ## MIT Licenced
 ##
 ## To change the yq command used in this script, edit set_config()
+##
+## Exit Codes:
+##  1: [NOT USED] Previously, in 0.1.0-pre was used for no cli parameters
+##  2: "Configuration file invalid: either doesn't exist or isn't file-like"
+##  3: "Compose file doesn't appear to exist"
+##  4: "Empty configuration path." or "No config file specified"
+##  5: "Unknown service, this shouldn't have happened."
 
 ## Set config
 set_config(){
 	if [[ ! -f "$CONFDIR/$CONFFILE" ]]; then
 		error_msg "Configuration file invalid: either doesn't exist or isn't file-like"
     usage
-		exit 3
+		exit 2
 	fi
 	echo "CONFIG: Using $CONFFILE in $CONFDIR/."
 
@@ -104,6 +111,17 @@ attention_msg() {
   fi
 }
 
+## Success (lime) text
+success_msg() {
+  if [[ $nocolor = 1 ]]; then
+    echo $@
+  else
+    local LIME='\033[32;1m'
+    local NC='\033[0m'
+    printf "${LIME}%s${NC}\n" "$1"
+  fi
+}
+
 ## Colorize service output
 display_config() {
   if [[ $nocolor = 1 ]]; then
@@ -143,7 +161,7 @@ while [[ $# -gt 0 ]]; do
         save_configpath $1
       else
         error_msg "No config file specified"
-        exit 1
+        exit 4
       fi
       shift
       ;;
@@ -193,10 +211,10 @@ if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
     attention_msg -n "Confirm that you want to apply the action to all stacks (y/n)? "
     read answer
     if [ "$answer" != "${answer#[Yy]}" ] ;then
-        echo "Will execute same docker-compose command for all service stacks."
+        success_msg "Will execute same docker-compose command for all service stacks."
         DOALL=1
     else
-        echo "Stopping the script. Check $CONFFILE or specify a service:"
+        attention_msg "Stopping the script. Check $CONFFILE or specify a service:"
         echo "    $NAMELIST"
         exit 0
     fi
@@ -213,9 +231,9 @@ if [[ $DOALL = 1 ]]; then
     do
         service=${NAMELIST[$i]}
         composefile=${COMPOSELIST[$i]/#\~/$HOME}
-        echo "$service: $composefile"
+        display_config "$service" "$composefile"
         if [[ ! -f $composefile ]]; then
-          echo "Compose file doesn't appear to exist"
+          error_msg "Compose file doesn't appear to exist"
           exit 3
         fi
         if [[ $# -lt 1 ]]; then
@@ -231,15 +249,15 @@ service=$1
 shift
 
 if [[ ! " ${NAMELIST[@]} " =~ " ${service} " ]]; then
-  echo "Unknown service, this shouldn't have happened."
+  error_msg "Unknown service, this shouldn't have happened."
   exit 5
 fi
 for i in "${!NAMELIST[@]}"; do
   if [[ "${NAMELIST[$i]}" = "${service}" ]]; then
     composefile=${COMPOSELIST[$i]/#\~/$HOME}
-    echo "$service: $composefile"
+    display_config "$service" "$composefile"
     if [[ ! -f $composefile ]]; then
-      echo "Compose file doesn't appear to exist"
+      error_msg "Compose file doesn't appear to exist"
       exit 3
     fi
     if [[ $# -lt 1 ]]; then
