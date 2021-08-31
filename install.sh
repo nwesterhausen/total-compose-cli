@@ -33,7 +33,24 @@ else
 fi
 
 ## Do the installation..
-echo "Adding total-compose to PATH in ~/.profile"
-echo 'PATH=$PATH:~/.total-compose-cli/total-compose' >> ~/.profile
-echo "Updating PATH for this session"
-export PATH=$PATH:/.total-compose-cli/total-compose
+if [[ -d "${HOME}/.total-compose" ]]
+then
+	echo "Repo exists."
+else
+	echo "Cloning repo into ~/.total-compose"
+	git clone https://github.com/nwesterhausen/total-compose-cli.git ~/.total-compose
+fi
+
+## Link to bin dir in path
+if [[ -d "${HOME}/.local/bin" ]]
+then
+	echo "Installing to ~/.local/bin"
+	ln -s "${HOME}/.total-compose/total-compose" "${HOME}/.local/bin/total-compose"
+elif [[ -d "${HOME}/bin" ]]
+then
+	echo "Installing to ~/bin"
+	ln -s "${HOME}/.total-compose/total-compose" "${HOME}/.local/bin/total-compose"
+else
+	echo "Did not find a local friendly bin folder. (Checked ~/.local/bin and ~/bin)"
+	echo "Please manually add ~/.total-compose/total-compose.sh into your PATH"
+fi
