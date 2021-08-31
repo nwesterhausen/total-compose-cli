@@ -17,14 +17,14 @@ set_config(){
 	local YQ="docker run --rm -v $CONFDIR:/workdir mikefarah/yq"
 	#YQ="yq"
 
-	readarray NAMELIST < <($YQ e '... comments="" | .services[].name' $CONFFILE | tr -d '[:space:]')
-	readarray COMPOSELIST < <($YQ e '... comments="" | .services[].location' $CONFFILE | tr -d '[:space:]')
+	NAMELIST=(`$YQ e '... comments="" | .services[].name' $CONFFILE | tr "\n" " "`)
+	COMPOSELIST=(`$YQ e '... comments="" | .services[].location' $CONFFILE | tr "\n" " "`)
 	readarray DESCLIST < <($YQ e '... comments="" | .services[].description' $CONFFILE)
 
   CONFYESALL=`$YQ e '... comments="" | .assume-yes' $CONFFILE`
 
   if [[ $configcheck = 1 ]]; then
-    echo "Parsed config file:"
+    echo "YQ parsed config file:"
     if [[ $nocolor -eq 1 ]]; then
       $YQ e '... comments="" | .' $CONFFILE
     else
@@ -170,10 +170,10 @@ set_config
 ## Check for having no more cli arguments
 if [[ $configcheck = 1 ]]; then
   echo ""
-  echo "Printing parsed configuration:"
+  echo "Total-compose parsed configuration:"
   display_config "assume-yes" $CONFYESALL
   for i in "${!NAMELIST[@]}"; do
-      display_config "${NAMELIST[$i]}" "${COMPOSELIST[$i]/#\~/$HOME}" "${DESCLIST[$i]}"
+      display_config "${NAMELIST[$i]}" "${COMPOSELIST[$i]/#\~/$HOME}" "`echo "${DESCLIST[$i]}" | tr -d "\n"`"
   done
   exit 0
 elif [[ $# -lt 1 ]]; then
