@@ -6,12 +6,12 @@
 
 ## Set config
 set_config(){
-	echo "CONFIG: Using $CONFFILE in $CONFDIR."
 	if [[ ! -f "$CONFDIR/$CONFFILE" ]]; then
-		echo "Configuration file invalid: either doesn't exist or isn't file-like"
+		error_msg "Configuration file invalid: either doesn't exist or isn't file-like"
     usage
 		exit 3
 	fi
+	echo "CONFIG: Using $CONFFILE in $CONFDIR/."
 
 	## YQ invocation variable (change this if you don't like using docker run --rm for yq)
 	local YQ="docker run --rm -v $CONFDIR:/workdir mikefarah/yq"
@@ -25,32 +25,38 @@ set_config(){
 
   if [[ $configcheck = 1 ]]; then
     echo "Parsed config file:"
-    $YQ e '... comments="" | .' $CONFFILE
+    $YQ --colors e '... comments="" | .' $CONFFILE
   fi
 }
 
 ## Usage display
 usage(){
-  myname=$(basename "$0")
-  echo "total-compose v0.2.1-pre"
-  echo "Usage: $myname [options] servicegroup [action]"
-  echo ""
-  echo "Valid option flags:"
-  echo "    -c, --config=		Path of config file if not using ~/.total-compose/config.yaml"
-  echo ""
-  echo "To see valid actions, run 'docker-compose help'"
-  echo ""
-  echo "$myname simplifies calling docker-compose on the compose files in this repository."
-  echo "Any command you can perform with docker-compose can be performed with this tool."
-  echo "This tool calls 'docker-compose -f FILE_LOCATION [action]' depending on"
-  echo "which configured service you provided. If no action is provided, this will check"
-  echo "current status for the services in the docker-compose file. (docker-compose ps)"
-  echo ""
+cat <<EOF
+total-compose v0.2.1-pre
+Usage: total-compose [options] [servicegroup] [action]
+
+Valid option flags:
+  -c, --config=   Path of config file if not using ~/.total-compose/config.yaml
+  --no-color      Disable color output
+
+To see valid actions, run 'docker-compose help'. 
+
+servicegroup must not match a docker-compose subcommand and must match one of the
+defined names in the config file. If it doesn't match a name in the config file,
+it becomes part of the 'action' parameter.
+
+total-compose simplifies calling docker-compose on the compose files specified in
+the config file. Any command you can perform with docker-compose can be performed 
+with this tool. This tool calls 'docker-compose -f FILE_LOCATION [action]' depending 
+on which service name you provided. If no action is provided, this will check
+current status for the services in the docker-compose file. (docker-compose ps)
+
+EOF
   echo "Config used: $CONFFILE in $CONFDIR"
-  echo ""
+  echo
   echo "The following service stacks were read from the configuration file:"
   for i in "${!NAMELIST[@]}"; do
-		printf "%s\t%s\n\t%s" "${NAMELIST[$i]}" "${COMPOSELIST[$i]}" "${DESCLIST[$i]}"
+		display_config "${NAMELIST[$i]}" "${COMPOSELIST[$i]}" "${DESCLIST[$i]}"
 	done
 }
 
@@ -63,9 +69,51 @@ save_configpath() {
       CONFDIR="${CONFDIR/#\./`pwd`}"
       CONFFILE=$(basename "$1")
     else
-      echo "Empty configuration path."
+      error_msg "Empty configuration path."
       exit 4
     fi
+}
+
+## Error (red) text
+error_msg() {
+  if [[ nocolor = 1 ]]; then
+    echo $@
+  else
+    local RED='\033[0;31m'
+    local NC='\033[0m'
+    printf "${RED}%s${NC}\n" "$1"
+  fi
+}
+
+## Attention (yellow) text
+attention_msg() {
+  if [[ nocolor = 1 ]]; then
+    echo $@
+  else
+    local YLW='\033[0;33m'
+    local NC='\033[0m'
+    if [[ $1 = "-n" ]]; then      
+      printf "${YLW}%s${NC}" "$2"
+    else
+      printf "${YLW}%s${NC}\n" "$1"
+    fi
+  fi
+}
+
+## Colorize service output
+display_config() {
+  if [[ nocolor = 1 ]]; then
+    echo $@
+  else
+    local CYAN='\033[0;36m'
+    local GREEN='\033[0;32m'
+    local NC='\033[0m'
+    if [[ $# -eq 2 ]]; then
+      printf "${CYAN}%s${NC}:\t${GREEN}%s${NC}\n" "$1" "$2"
+    else
+      printf "${CYAN}%s${NC}:\t${GREEN}%s${NC}\n\t%s\n" "$1" "$2" "$3"
+    fi
+  fi
 }
 
 ## SET DEFAULT
@@ -76,9 +124,13 @@ CONFFILE="config.yaml"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help)
-	  set_config
+      set_config
       usage
       exit 0
+      ;;
+    --no-color)
+      nocolor=1
+      shift
       ;;
     -c)
       shift
@@ -95,7 +147,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --check|-t|--test)
-      echo "Will check config"
+      attention_msg "Config will be printed."
       configcheck=1
       shift
       ;;
@@ -111,13 +163,13 @@ set_config
 if [[ $configcheck = 1 ]]; then
   echo ""
   echo "Printing parsed configuration:"
-  echo "assume-yes: $CONFYESALL"
+  display_config "assume-yes" $CONFYESALL
   for i in "${!NAMELIST[@]}"; do
-      printf "%s:\t%s\n\t%s\n" "${NAMELIST[$i]}" "${COMPOSELIST[$i]/#\~/$HOME}" "${DESCLIST[$i]}"
+      display_config "${NAMELIST[$i]}" "${COMPOSELIST[$i]/#\~/$HOME}" "${DESCLIST[$i]}"
   done
   exit 0
 elif [[ $# -lt 1 ]]; then
-  echo "No command specified, by default 'ps' will be passed to docker-compose"
+  attention_msg "No command specified, by default 'ps' will be passed to docker-compose"
   command="ps"
 fi
 
@@ -130,7 +182,7 @@ if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
     echo "assume-all is set in config, will apply action to all stacks."    
     DOALL=1
   else
-    echo -n "Confirm that you want to apply the action to all stacks (y/n)? "
+    attention_msg -n "Confirm that you want to apply the action to all stacks (y/n)? "
     read answer
     if [ "$answer" != "${answer#[Yy]}" ] ;then
         echo "Will execute same docker-compose command for all service stacks."
