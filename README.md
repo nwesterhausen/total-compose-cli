@@ -29,7 +29,17 @@ Run the `install.sh` script. Here's what it does:
 	[docker-compose](https://docs.docker.com/compose/install/)
 
 2. clones this repository to `~/.total-compose`
-3. links the `total-compose` script to a discovered bin folder in either `~/bin` or `~/.local/bin`
+3. links the `total-compose.sh` script to a discovered bin folder in either `~/bin` or `~/.local/bin`
+
+	Note: If neither of those directories exist, either create one of them and add 
+	it to your $PATH in .profile or manually link the total-compose.sh into a location
+	you can call it from.
+
+## Additional Requirements
+
+Running total-compose requires your user be a member of the docker group, otherwise
+you will need to run total-compose as a superuser or other user with permissions on
+the docker daemon.
 
 ## Usage
 
