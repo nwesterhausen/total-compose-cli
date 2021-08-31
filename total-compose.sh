@@ -9,6 +9,7 @@ set_config(){
 	echo "CONFIG: Using $CONFFILE in $CONFDIR."
 	if [[ ! -f "$CONFDIR/$CONFFILE" ]]; then
 		echo "Configuration file invalid: either doesn't exist or isn't file-like"
+    usage
 		exit 3
 	fi
 
@@ -18,7 +19,7 @@ set_config(){
 
 	readarray NAMELIST < <($YQ e '... comments="" | .services[].name' $CONFFILE | tr -d '[:space:]')
 	readarray COMPOSELIST < <($YQ e '... comments="" | .services[].location' $CONFFILE | tr -d '[:space:]')
-	readarray DESCLIST < <($YQ e '... comments="" | .services[].description' $CONFFILE | tr -d '[:space:]')
+	readarray DESCLIST < <($YQ e '... comments="" | .services[].description' $CONFFILE)
 
   CONFYESALL=`$YQ e '... comments="" | .assume-yes' $CONFFILE`
 
@@ -30,25 +31,26 @@ set_config(){
 
 ## Usage display
 usage(){
-    echo "total-compose v0.2.0-pre"
-	echo "Usage: $0 [options] servicegroup [action]"
-	echo ""
-	echo "Valid option flags:"
-	echo "    -c, --config=		Path of config file if not using ~/.total-compose/config.yaml"
-    echo ""
-	echo "To see valid actions, run 'docker-compose help'"
-	echo ""
-    echo "$0 simplifies calling docker-compose on the compose files in this repository."
-    echo "Any command you can perform with docker-compose can be performed with this tool."
-    echo "This tool calls 'docker-compose -f FILE_LOCATION [action]' depending on"
-    echo "which configured service you provided. If no action is provided, this will check"
-    echo "current status for the services in the docker-compose file. (docker-compose ps)"
-    echo ""
-	echo "Config used: $CONFFILE in $CONFDIR"
-	echo ""
-    echo "The following service stacks were read from the configuration file:"
-    for i in "${!NAMELIST[@]}"; do
-		printf "%s\t%s\t%s\n" "${NAMELIST[$i]}" "${DESCLIST[$i]}" "${COMPOSELIST[$i]}"
+  myname=$(basename "$0")
+  echo "total-compose v0.2.1-pre"
+  echo "Usage: $myname [options] servicegroup [action]"
+  echo ""
+  echo "Valid option flags:"
+  echo "    -c, --config=		Path of config file if not using ~/.total-compose/config.yaml"
+  echo ""
+  echo "To see valid actions, run 'docker-compose help'"
+  echo ""
+  echo "$myname simplifies calling docker-compose on the compose files in this repository."
+  echo "Any command you can perform with docker-compose can be performed with this tool."
+  echo "This tool calls 'docker-compose -f FILE_LOCATION [action]' depending on"
+  echo "which configured service you provided. If no action is provided, this will check"
+  echo "current status for the services in the docker-compose file. (docker-compose ps)"
+  echo ""
+  echo "Config used: $CONFFILE in $CONFDIR"
+  echo ""
+  echo "The following service stacks were read from the configuration file:"
+  for i in "${!NAMELIST[@]}"; do
+		printf "%s\t%s\n\t%s" "${NAMELIST[$i]}" "${COMPOSELIST[$i]}" "${DESCLIST[$i]}"
 	done
 }
 
