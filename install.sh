@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Total-Compose requires some programs to be installed to function correctly.
-REQUIRED=("docker docker-compose")
+REQUIRED=("docker docker-compose git")
 
 ## Is Program Installed? If not, add it to missing.
 ## Uses $required_program variable as a "parameter"
