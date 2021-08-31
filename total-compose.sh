@@ -25,7 +25,11 @@ set_config(){
 
   if [[ $configcheck = 1 ]]; then
     echo "Parsed config file:"
-    $YQ --colors e '... comments="" | .' $CONFFILE
+    if [[ $nocolor -eq 1 ]]; then
+      $YQ e '... comments="" | .' $CONFFILE
+    else
+      $YQ --colors e '... comments="" | .' $CONFFILE
+    fi
   fi
 }
 
@@ -76,7 +80,7 @@ save_configpath() {
 
 ## Error (red) text
 error_msg() {
-  if [[ nocolor = 1 ]]; then
+  if [[ $nocolor = 1 ]]; then
     echo $@
   else
     local RED='\033[0;31m'
@@ -87,7 +91,7 @@ error_msg() {
 
 ## Attention (yellow) text
 attention_msg() {
-  if [[ nocolor = 1 ]]; then
+  if [[ $nocolor = 1 ]]; then
     echo $@
   else
     local YLW='\033[0;33m'
@@ -102,7 +106,7 @@ attention_msg() {
 
 ## Colorize service output
 display_config() {
-  if [[ nocolor = 1 ]]; then
+  if [[ $nocolor = 1 ]]; then
     echo $@
   else
     local CYAN='\033[0;36m'
@@ -119,6 +123,7 @@ display_config() {
 ## SET DEFAULT
 CONFDIR="$HOME/.total-compose"
 CONFFILE="config.yaml"
+nocolor=0
 
 ## Parse flags
 while [[ $# -gt 0 ]]; do
@@ -137,7 +142,7 @@ while [[ $# -gt 0 ]]; do
       if [[ $# -gt 0 ]]; then
         save_configpath $1
       else
-        echo "no config file specified"
+        error_msg "No config file specified"
         exit 1
       fi
       shift
@@ -147,7 +152,6 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --check|-t|--test)
-      attention_msg "Config will be printed."
       configcheck=1
       shift
       ;;
@@ -156,6 +160,10 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ $configcheck=1 ]]; then
+      attention_msg "Config will be printed."
+fi
 
 set_config
 
