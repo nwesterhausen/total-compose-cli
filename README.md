@@ -22,22 +22,14 @@ The way total-compose calls `yq` can be modified by editing the `$YQ` variable i
 
 Run the `install.sh` script. Here's what it does:
 
-1. checks that both `docker` and `docker-compose` are installed
+1. checks that `docker`, `docker-compose`, and `git` are installed
 
 	Note: These must be set up ahead of time.
 	[docker-ce](https://docs.docker.com/engine/install/) 
 	[docker-compose](https://docs.docker.com/compose/install/)
 
 2. clones this repository to `~/.total-compose`
-3. adds `~/.total-compose/total-compose` to `$PATH` in `~/.profile`
-
-	Note: Consider checking for and including `.profile` in your `.bash_profile` if you don't already:
-
-	```bash
-	if [ -r ~/.profile ]; then . ~/.profile; fi
-	```
-
-4. adds `~/.total-compose/total-compose` to `$PATH` for the current shell session
+3. links the `total-compose` script to a discovered bin folder in either `~/bin` or `~/.local/bin`
 
 ## Usage
 

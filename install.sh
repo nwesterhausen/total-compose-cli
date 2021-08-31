@@ -45,11 +45,11 @@ fi
 if [[ -d "${HOME}/.local/bin" ]]
 then
 	echo "Installing to ~/.local/bin"
-	ln -s "${HOME}/.total-compose/total-compose" "${HOME}/.local/bin/total-compose"
+	ln -s "${HOME}/.total-compose/total-compose.sh" "${HOME}/.local/bin/total-compose"
 elif [[ -d "${HOME}/bin" ]]
 then
 	echo "Installing to ~/bin"
-	ln -s "${HOME}/.total-compose/total-compose" "${HOME}/.local/bin/total-compose"
+	ln -s "${HOME}/.total-compose/total-compose.sh" "${HOME}/.local/bin/total-compose"
 else
 	echo "Did not find a local friendly bin folder. (Checked ~/.local/bin and ~/bin)"
 	echo "Please manually add ~/.total-compose/total-compose.sh into your PATH"
