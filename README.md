@@ -1,6 +1,6 @@
 # total-compose-cli
 
-![v0.1.0-pre](https://img.shields.io/badge/version-0.1.0--pre-orange)
+![v0.2.0-pre](https://img.shields.io/badge/version-0.1.0--pre-orange)
 
 total-compose is a docker-compose helper which lets you specify docker-compose.yml files using
 keywords (names) and do so from the comfort of $HOME regardless of where the compose file
@@ -35,3 +35,23 @@ Run the `install.sh` script. Here's what it does:
 
 total-compose prefers to use config.yaml in `~/.total-compose`, but you may specify 
 a specific configuration file using `-c, --config=` instead.
+
+### Example
+```yaml
+# ~/.total-compose/config.yaml
+services:
+  - name: who
+    location: ~/whoami/docker-compose.yml
+    description: nginx serving example.com
+assume-yes: false
+```
+
+```
+nwest@ubuntu-server:~$ total-compose who config
+CONFIG: Using config.yaml in /home/nwest/.total-compose.
+who: /home/nwest/whoami/docker-compose.yml
+services:
+  whoami:
+    image: traefik/whoami
+version: '3.9'
+```

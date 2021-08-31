@@ -16,14 +16,21 @@ set_config(){
 	local YQ="docker run --rm -v $CONFDIR:/workdir mikefarah/yq"
 	#YQ="yq"
 
-	readarray NAMELIST < <($YQ e '... comments="" | .services[].name' $CONFFILE)
-	readarray COMPOSELIST < <($YQ e '... comments="" | .services[].location' $CONFFILE)
-	readarray DESCLIST < <($YQ e '... comments="" | .services[].description' $CONFFILE)
+	readarray NAMELIST < <($YQ e '... comments="" | .services[].name' $CONFFILE | tr -d '[:space:]')
+	readarray COMPOSELIST < <($YQ e '... comments="" | .services[].location' $CONFFILE | tr -d '[:space:]')
+	readarray DESCLIST < <($YQ e '... comments="" | .services[].description' $CONFFILE | tr -d '[:space:]')
+
+  CONFYESALL=`$YQ e '... comments="" | .assume-yes' $CONFFILE`
+
+  if [[ $configcheck = 1 ]]; then
+    echo "Parsed config file:"
+    $YQ e '... comments="" | .' $CONFFILE
+  fi
 }
 
 ## Usage display
 usage(){
-    echo "total-compose v0.1.0-pre"
+    echo "total-compose v0.2.0-pre"
 	echo "Usage: $0 [options] servicegroup [action]"
 	echo ""
 	echo "Valid option flags:"
@@ -63,16 +70,8 @@ save_configpath() {
 CONFDIR="$HOME/.total-compose"
 CONFFILE="config.yaml"
 
-## Check for having no cli arguments
-if [[ $# -lt 1 ]]; then
-	set_config
-	usage
-	exit 1
-fi
-
 ## Parse flags
 while [[ $# -gt 0 ]]; do
-  echo "Testing flag $1"
   case "$1" in
     -h|--help)
 	  set_config
@@ -93,6 +92,11 @@ while [[ $# -gt 0 ]]; do
       save_configpath `echo $1 | sed -e 's/^[^=]*=//g'`
       shift
       ;;
+    --check|-t|--test)
+      echo "Will check config"
+      configcheck=1
+      shift
+      ;;
     *)
       break
       ;;
@@ -102,12 +106,85 @@ done
 set_config
 
 ## Check for having no more cli arguments
-if [[ $# -lt 1 ]]; then
+if [[ $configcheck = 1 ]]; then
   echo ""
   echo "Printing parsed configuration:"
+  echo "assume-yes: $CONFYESALL"
   for i in "${!NAMELIST[@]}"; do
-      printf "%s\t%s\t%s\n" "${NAMELIST[$i]}" "${DESCLIST[$i]}" "${COMPOSELIST[$i]}"
+      printf "%s:\t%s\n\t%s\n" "${NAMELIST[$i]}" "${COMPOSELIST[$i]/#\~/$HOME}" "${DESCLIST[$i]}"
   done
   exit 0
+elif [[ $# -lt 1 ]]; then
+  echo "No command specified, by default 'ps' will be passed to docker-compose"
+  command="ps"
 fi
 
+## Next cli argument should be one of the names we gathered. If it isn't
+## then we will assume you want to do something to everything.
+if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
+  echo "$1 is not defined in config, passing it through to docker-compose"
+  ## Check unless the config entry "assume-all" is true
+  if [[ $CONFYESALL = "true" ]]; then
+    echo "assume-all is set in config, will apply action to all stacks."    
+    DOALL=1
+  else
+    echo -n "Confirm that you want to apply the action to all stacks (y/n)? "
+    read answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        echo "Will execute same docker-compose command for all service stacks."
+        DOALL=1
+    else
+        echo "Stopping the script. Check $CONFFILE or specify a service:"
+        echo "    $NAMELIST"
+        exit 0
+    fi
+  fi
+fi
+
+if [[ $DOALL = 1 ]]; then
+    if [[ -z ${command+x} ]]; then
+      command=$@
+    fi    
+    echo "Performing this command on all services:"
+    echo "    docker-compose $command"
+    for i in "${!NAMELIST[@]}"
+    do
+        service=${NAMELIST[$i]}
+        composefile=${COMPOSELIST[$i]/#\~/$HOME}
+        echo "$service: $composefile"
+        if [[ ! -f $composefile ]]; then
+          echo "Compose file doesn't appear to exist"
+          exit 3
+        fi
+        if [[ $# -lt 1 ]]; then
+            docker-compose -f "$composefile" ps
+        else
+            docker-compose -f "$composefile" $@
+        fi
+    done
+    exit 0
+fi
+
+service=$1
+shift
+
+if [[ ! " ${NAMELIST[@]} " =~ " ${service} " ]]; then
+  echo "Unknown service, this shouldn't have happened."
+  exit 5
+fi
+for i in "${!NAMELIST[@]}"; do
+  if [[ "${NAMELIST[$i]}" = "${service}" ]]; then
+    composefile=${COMPOSELIST[$i]/#\~/$HOME}
+    echo "$service: $composefile"
+    if [[ ! -f $composefile ]]; then
+      echo "Compose file doesn't appear to exist"
+      exit 3
+    fi
+    if [[ $# -lt 1 ]]; then
+        docker-compose -f "$composefile" ps
+    else
+        docker-compose -f "$composefile" $@
+    fi
+    
+   fi
+done
