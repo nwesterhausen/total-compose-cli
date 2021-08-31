@@ -1,6 +1,6 @@
 # total-compose-cli
 
-![v0.2.1-pre](https://img.shields.io/badge/version-0.2.1--pre-orange)
+![v0.2.2-pre](https://img.shields.io/badge/version-0.2.2--pre-orange)
 
 total-compose is a docker-compose helper which lets you specify docker-compose.yml files using
 keywords (names) and do so from the comfort of $HOME regardless of where the compose file
@@ -44,20 +44,23 @@ the docker daemon.
 ## Usage
 
 ```
-nwest@ubuntu-server:~/.total-compose$ total-compose -h
-CONFIG: Using config.yaml in /home/nwest/.total-compose.
-total-compose v0.2.0-pre
-Usage: /home/nwest/.local/bin/total-compose [options] servicegroup [action]
+total-compose v0.2.2-pre
+Usage: total-compose [options] [servicegroup] [action]
 
 Valid option flags:
-    -c, --config=               Path of config file if not using ~/.total-compose/config.yaml
+  -c, --config=   Path of config file if not using ~/.total-compose/config.yaml
+  --no-color      Disable color output
 
-To see valid actions, run 'docker-compose help'
+To see valid actions, run 'docker-compose help'.
 
-/home/nwest/.local/bin/total-compose simplifies calling docker-compose on the compose files in this repository.
-Any command you can perform with docker-compose can be performed with this tool.
-This tool calls 'docker-compose -f FILE_LOCATION [action]' depending on
-which configured service you provided. If no action is provided, this will check
+servicegroup must not match a docker-compose subcommand and must match one of the
+defined names in the config file. If it doesn't match a name in the config file,
+it becomes part of the 'action' parameter.
+
+total-compose simplifies calling docker-compose on the compose files specified in
+the config file. Any command you can perform with docker-compose can be performed
+with this tool. This tool calls 'docker-compose -f FILE_LOCATION [action]' depending
+on which service name you provided. If no action is provided, this will check
 current status for the services in the docker-compose file. (docker-compose ps)
 
 Config used: config.yaml in /home/nwest/.total-compose
