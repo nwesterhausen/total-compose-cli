@@ -1,6 +1,6 @@
 # total-compose-cli
 
-![v0.1.0](https://img.shields.io/badge/version-0.1.0-orange)
+![v0.1.0-pre](https://img.shields.io/badge/version-0.1.0--pre-orange)
 
 total-compose is a docker-compose helper which lets you specify docker-compose.yml files using
 keywords (names) and do so from the comfort of $HOME regardless of where the compose file

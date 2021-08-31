@@ -6,6 +6,12 @@
 
 ## Set config
 set_config(){
+	echo "CONFIG: Using $CONFFILE in $CONFDIR."
+	if [[ ! -f "$CONFDIR/$CONFFILE" ]]; then
+		echo "Configuration file invalid: either doesn't exist or isn't file-like"
+		exit 3
+	fi
+
 	## YQ invocation variable (change this if you don't like using docker run --rm for yq)
 	local YQ="docker run --rm -v $CONFDIR:/workdir mikefarah/yq"
 	#YQ="yq"
@@ -17,7 +23,7 @@ set_config(){
 
 ## Usage display
 usage(){
-    echo "total-compose v0.1.0"
+    echo "total-compose v0.1.0-pre"
 	echo "Usage: $0 [options] servicegroup [action]"
 	echo ""
 	echo "Valid option flags:"
@@ -37,7 +43,20 @@ usage(){
     for i in "${!NAMELIST[@]}"; do
 		printf "%s\t%s\t%s\n" "${NAMELIST[$i]}" "${DESCLIST[$i]}" "${COMPOSELIST[$i]}"
 	done
-	exit 1
+}
+
+## Split configpath into directory and file
+save_configpath() {
+    echo "parsing $@ ($1)"
+    if [[ ! -z ${1+x} ]]; then
+      CONFDIR=$(dirname "$1")
+      CONFDIR="${CONFDIR/#\~/$HOME}"
+      CONFDIR="${CONFDIR/#\./`pwd`}"
+      CONFFILE=$(basename "$1")
+    else
+      echo "Empty configuration path."
+      exit 4
+    fi
 }
 
 ## SET DEFAULT
@@ -48,4 +67,47 @@ CONFFILE="config.yaml"
 if [[ $# -lt 1 ]]; then
 	set_config
 	usage
+	exit 1
 fi
+
+## Parse flags
+while [[ $# -gt 0 ]]; do
+  echo "Testing flag $1"
+  case "$1" in
+    -h|--help)
+	  set_config
+      usage
+      exit 0
+      ;;
+    -c)
+      shift
+      if [[ $# -gt 0 ]]; then
+        save_configpath $1
+      else
+        echo "no config file specified"
+        exit 1
+      fi
+      shift
+      ;;
+    --config*)
+      save_configpath `echo $1 | sed -e 's/^[^=]*=//g'`
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+set_config
+
+## Check for having no more cli arguments
+if [[ $# -lt 1 ]]; then
+  echo ""
+  echo "Printing parsed configuration:"
+  for i in "${!NAMELIST[@]}"; do
+      printf "%s\t%s\t%s\n" "${NAMELIST[$i]}" "${DESCLIST[$i]}" "${COMPOSELIST[$i]}"
+  done
+  exit 0
+fi
+
