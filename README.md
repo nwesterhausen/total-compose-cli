@@ -33,8 +33,29 @@ Run the `install.sh` script. Here's what it does:
 
 ## Usage
 
-total-compose prefers to use config.yaml in `~/.total-compose`, but you may specify 
-a specific configuration file using `-c, --config=` instead.
+```
+nwest@ubuntu-server:~/.total-compose$ total-compose -h
+CONFIG: Using config.yaml in /home/nwest/.total-compose.
+total-compose v0.2.0-pre
+Usage: /home/nwest/.local/bin/total-compose [options] servicegroup [action]
+
+Valid option flags:
+    -c, --config=               Path of config file if not using ~/.total-compose/config.yaml
+
+To see valid actions, run 'docker-compose help'
+
+/home/nwest/.local/bin/total-compose simplifies calling docker-compose on the compose files in this repository.
+Any command you can perform with docker-compose can be performed with this tool.
+This tool calls 'docker-compose -f FILE_LOCATION [action]' depending on
+which configured service you provided. If no action is provided, this will check
+current status for the services in the docker-compose file. (docker-compose ps)
+
+Config used: config.yaml in /home/nwest/.total-compose
+
+The following service stacks were read from the configuration file:
+who     ~/whoami/docker-compose.yml
+        Simple whoami service which sits and answers with whoami.
+```
 
 ### Example
 ```yaml
@@ -42,7 +63,7 @@ a specific configuration file using `-c, --config=` instead.
 services:
   - name: who
     location: ~/whoami/docker-compose.yml
-    description: nginx serving example.com
+    description: Simple whoami service which sits and answers with whoami.
 assume-yes: false
 ```
 
