@@ -54,4 +54,24 @@ services:
   whoami:
     image: traefik/whoami
 version: '3.9'
+
+nwest@ubuntu-server:~$ total-compose
+CONFIG: Using config.yaml in /home/nwest/.total-compose.
+No command specified, by default 'ps' will be passed to docker-compose
+ is not defined in config, passing it through to docker-compose
+Confirm that you want to apply the action to all stacks (y/n)? y
+Will execute same docker-compose command for all service stacks.
+Performing this command on all services:
+    docker-compose ps
+who: /home/nwest/whoami/docker-compose.yml
+     Name         Command   State   Ports
+------------------------------------------
+whoami_whoami_1   /whoami   Up      80/tcp
+
+nwest@ubuntu-server:~$ total-compose who down
+CONFIG: Using config.yaml in /home/nwest/.total-compose.
+who: /home/nwest/whoami/docker-compose.yml
+Stopping whoami_whoami_1 ... done
+Removing whoami_whoami_1 ... done
+Removing network whoami_default
 ```
