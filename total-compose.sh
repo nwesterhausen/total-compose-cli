@@ -179,7 +179,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ $configcheck=1 ]]; then
+if [[ $configcheck -eq 1 ]]; then
       attention_msg "Config will be printed."
 fi
 
@@ -215,7 +215,8 @@ if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
         DOALL=1
     else
         attention_msg "Stopping the script. Check $CONFFILE or specify a service:"
-        echo "    $NAMELIST"
+        printf '%s ' "${NAMELIST[@]}"
+		echo ""
         exit 0
     fi
   fi
