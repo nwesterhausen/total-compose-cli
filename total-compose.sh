@@ -43,7 +43,7 @@ set_config(){
 ## Usage display
 usage(){
 cat <<EOF
-total-compose v0.2.2-pre
+total-compose v1.0.0-rc1
 Usage: total-compose [options] [servicegroup] [action]
 
 Valid option flags:
