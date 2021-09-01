@@ -202,12 +202,17 @@ fi
 ## Next cli argument should be one of the names we gathered. If it isn't
 ## then we will assume you want to do something to everything.
 if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
-  echo "$1 is not defined in config, passing it through to docker-compose"
+  if [[ ${1+x} ]]; then
+    echo "$1 is not defined in config, passing it through to docker-compose"
+  else
+    echo "No service or command defined."
+  fi
   ## Check unless the config entry "assume-all" is true
   if [[ $CONFYESALL = "true" ]]; then
     echo "assume-all is set in config, will apply action to all stacks."    
     DOALL=1
   else
+    echo "assume-all is not set in config, confirmation is necessary."
     attention_msg -n "Confirm that you want to apply the action to all stacks (y/n)? "
     read answer
     if [ "$answer" != "${answer#[Yy]}" ] ;then
