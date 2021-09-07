@@ -43,7 +43,7 @@ set_config(){
 ## Usage display
 usage(){
 cat <<EOF
-total-compose v1.0.0-rc1
+total-compose v1.0.0
 Usage: total-compose [options] [servicegroup] [action]
 
 Valid option flags:
@@ -179,7 +179,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ $configcheck=1 ]]; then
+if [[ $configcheck -eq 1 ]]; then
       attention_msg "Config will be printed."
 fi
 
@@ -202,12 +202,17 @@ fi
 ## Next cli argument should be one of the names we gathered. If it isn't
 ## then we will assume you want to do something to everything.
 if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
-  echo "$1 is not defined in config, passing it through to docker-compose"
+  if [[ ${1+x} ]]; then
+    echo "$1 is not defined in config, passing it through to docker-compose"
+  else
+    echo "No service or command defined."
+  fi
   ## Check unless the config entry "assume-all" is true
   if [[ $CONFYESALL = "true" ]]; then
     echo "assume-all is set in config, will apply action to all stacks."    
     DOALL=1
   else
+    echo "assume-all is not set in config, confirmation is necessary."
     attention_msg -n "Confirm that you want to apply the action to all stacks (y/n)? "
     read answer
     if [ "$answer" != "${answer#[Yy]}" ] ;then
@@ -215,7 +220,8 @@ if [[ ! " ${NAMELIST[@]} " =~ " ${1} " ]]; then
         DOALL=1
     else
         attention_msg "Stopping the script. Check $CONFFILE or specify a service:"
-        echo "    $NAMELIST"
+        printf '%s ' "${NAMELIST[@]}"
+		echo ""
         exit 0
     fi
   fi
