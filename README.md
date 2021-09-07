@@ -71,6 +71,10 @@ who     ~/whoami/docker-compose.yml
 ```
 
 ### Example
+
+I have a [repository](https://github.com/nwesterhausen/compose-repo/tree/main) of compose files
+and the config file I used with total-compose to manage composing in bulk.
+
 ```yaml
 # ~/.total-compose/config.yaml
 services:
